@@ -112,7 +112,6 @@ public class Treap<T> implements Comparator<Object> {
         map.put(16, 3);
         map.put(2, 2);
         treap.build(map);
-        treap.toString();
     }
 
     /*
