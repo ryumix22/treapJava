@@ -120,7 +120,7 @@ public class Treap<T> implements Comparator<Object> {
         return "";
     }
     */
-
+//нужно исправить компаратор
     @Override
     public int compare(Object o1, Object o2) {
         return 0;
