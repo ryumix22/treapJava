@@ -8,41 +8,75 @@ public class Treap<T> implements Comparator<Object> {
     private Treap<T> Left;
     private Treap<T> Right;
 
-    public Treap(T x, int y, Treap<T> left, Treap<T> right) {
+    private int Size;
+
+    public static int sizeOfSubTreap(Treap treap) {
+        if (treap == null) return 0;
+        else return treap.Size;
+    }
+
+    public void recalc() {
+        Size = sizeOfSubTreap(Left) + sizeOfSubTreap(Right) + 1;
+    }
+
+    private Treap(T x, int y, Treap<T> left, Treap<T> right) {
         this.x = x;
         this.y = y;
         this.Left = left;
         this.Right = right;
     }
 
-    public Treap() {
+    public Treap(T x) {
+        Random random = new Random();
+        this.x = x;
+        this.y = random.nextInt(10000);
+        Size = 1;
+        this.Left = null;
+        this.Right = null;
     }
 
     public Treap<T> merge(Treap<T> treap1, Treap<T> treap2) {
         if (treap1 == null) return treap2;
         if (treap2 == null) return treap1;
-        else if (treap1.y > treap2.y) {
+        Treap<T> treap;
+        if (treap1.y > treap2.y) {
             treap1.Right = merge(treap1.Right, treap2);
-            return treap1;
+            treap = treap1;
         } else {
             treap2.Left = merge(treap1, treap2.Left);
-            return treap2;
+            treap = treap2;
         }
+        treap.recalc();
+        return treap;
     }
 
     private Treap<T>[] pairTreap = new Treap[2];
 
-    public Treap<T>[] split(T key) {
-        if (compare(key, this.x) > 0) {
-            pairTreap = this.Right.split(key);
-            this.Right = pairTreap[0];
-            pairTreap[0] = this;
+    public Treap<T>[] split(T key, Treap<T> treap) {
+        if (treap == null) {
+            pairTreap[0] = null;
+            pairTreap[1] = null;
             return pairTreap;
         } else {
-            pairTreap = this.Left.split(key);
-            this.Left = pairTreap[1];
-            pairTreap[1] = this;
-            return pairTreap;
+            if (compare(key, treap.x) > 0) {
+                pairTreap = split(key, treap.Right);
+                treap.Right = pairTreap[0];
+                pairTreap[0] = treap;
+                if (pairTreap[1] != null) {
+                    pairTreap[0].recalc();
+                    pairTreap[1].recalc();
+                }
+                return pairTreap;
+            } else {
+                pairTreap = split(key, treap.Left);
+                treap.Left = pairTreap[1];
+                pairTreap[1] = treap;
+                if (pairTreap[0] != null) {
+                    pairTreap[0].recalc();
+                    pairTreap[1].recalc();
+                }
+                return pairTreap;
+            }
         }
     }
 
@@ -79,20 +113,18 @@ public class Treap<T> implements Comparator<Object> {
     }
 
     public void add(T vertex) {
-        Random random = new Random();
-        Treap<T>[] pair = this.split(vertex);
-        Treap<T> oneVertex = new Treap<>(vertex, random.nextInt(100), null, null);
+        Treap<T>[] pair = split(vertex, this);
+        Treap<T> oneVertex = new Treap<>(vertex);
         Treap<T> tr = merge(merge(pair[0], oneVertex), pair[1]);
         this.x = tr.x;
         this.y = tr.y;
         this.Left = tr.Left;
         this.Right = tr.Right;
-
     }
 
     public void remove(T vertex) {
-        Treap<T>[] tr = split(vertex);
-        Treap<T>[] tr1 = tr[0].split(vertex);
+        Treap<T>[] tr = split(vertex, this);
+        Treap<T>[] tr1 = tr[0].split(vertex, this);
         Treap<T> newTreap = merge(tr[0], tr[1]);
         this.x = newTreap.x;
         this.y = newTreap.y;
@@ -100,18 +132,12 @@ public class Treap<T> implements Comparator<Object> {
         this.Right = newTreap.Right;
     }
 
+
     public static void main(String[] args) {
         TreeMap<Integer, Integer> map = new TreeMap<>();
-        Treap<Integer> treap = new Treap<>();
-        map.put(5, 4);
-        map.put(21, 7);
-        map.put(12, 12);
-        map.put(8, 1);
-        map.put(33, 13);
-        map.put(10, 6);
-        map.put(16, 3);
-        map.put(2, 2);
-        treap.build(map);
+        Treap<Integer> treap = new Treap<>(5);
+        treap.add(10);
+        System.out.println(sizeOfSubTreap(treap));
     }
 
     /*
@@ -121,6 +147,7 @@ public class Treap<T> implements Comparator<Object> {
     }
     */
 
+    //нужно исправить
     @Override
     public int compare(Object o1, Object o2) {
         return 0;
